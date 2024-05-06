@@ -1,0 +1,54 @@
+clc;
+close all;
+clear all;
+x = randi([0,1],1,4096); 
+biterr =[]; 
+snr = 0:30;
+for i = 1:4
+   if(i==1)
+       y = pskmod(x,2^i);
+   end
+    if(i==2)
+       y = pskmod(x,2^i);
+   end
+   if(i==3)
+       y = qammod(x,2^(i+1));
+   else
+       y = qammod(x,2^(i+2));
+   end
+   p = reshape(y,64,64); 
+   q = ifft(p,64); 
+   s = reshape(q,1,4096); 
+   be = [];
+   for j = 0:30
+       h = 1/sqrt(randn(1,1) + i*randn(1,1)); 
+       r = h*s;
+       n = awgn(r,j,'measured');
+       o = inv(h)*n;
+       p1 = reshape(o,64,64);
+       q1 = fft(p1,64); 
+       s1 = reshape(q1,1,4096);
+       if(i==1)
+           y1 = pskdemod(s1,2^i);
+       end
+       if(i==2)
+           y1 = pskdemod(s1,2^i);
+       end
+       if(i==3)
+           y1 = qamdemod(s1,2^(i+1));
+       else
+           y1 = qamdemod(s1,2^(i+2));
+       end
+       [num,e] = symerr(y1,x);
+       be=[be e];
+   end
+   biterr(i,:) = be;
+end
+semilogy(snr, biterr(1,:) , '*-k', 'linewidth',1) ;hold on;
+semilogy(snr, biterr(2,:) , '*-c', 'linewidth',1) ;hold on;
+semilogy(snr, biterr(3,:) , '*-m', 'linewidth',1) ;hold on;
+semilogy(snr, biterr(4,:) , '*-r', 'linewidth',1) ;hold on;
+xlabel("SNR in dB"); 
+ylabel("BER"); 
+title("SNR vs BER Plot");
+legend('bpsk','qpsk','16 QAM', '64 QAM');
