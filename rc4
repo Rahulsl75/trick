@@ -1,0 +1,46 @@
+clc;close all;clear all;
+
+s = zeros(1,256);  % s = [1 2 3 4 ... 256]
+for i = 1:256
+   s(i) = i;
+end
+key = [2 4 6 8 2 1 6 1]; %Key Value
+t =  zeros(1,256);
+for i = 1:256
+  t(i)=key(mod(i, length(key))+1);  %Generating T Array
+end
+user_message = input("Enter Plain Text: ");
+message = []; message = [message double(char(user_message))]; %Converting message
+disp("Message Value: ")
+disp(message);
+%Key Scheduling Algorithm:
+j = 0;
+for i = 1:256
+   j = mod(j+s(i)+t(i),256)+1;
+   s([i j]) = s([j i]); %Swap
+   j = j-1;
+end
+%Stream Generation:
+i = 0;j = 0; k = [];
+for m = 1:length(message)
+  i = mod(i+1,256);
+  j = mod((j+s(i)+1),256);
+  s([i j]) = s([j i]);
+  t = mod(s(i) + s(j), 256);
+ 
+  k =[k s(t)];
+end
+%Encryption:
+e = [];
+for i = 1:length(message)
+   e = [e bitxor(message(i), k(i))];
+end
+disp("Encrypted Text: ")
+disp(e);
+%Decryption
+p = [];
+for i = 1:length(message)
+   p = [p bitxor(e(i), k(i))];
+end
+disp("Decrypted Text:")
+disp(p);
