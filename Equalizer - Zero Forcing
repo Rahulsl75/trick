@@ -1,0 +1,20 @@
+clc; close all; clear all;
+xn = randi([0,1],1,1e6);
+xm = pskmod(xn,2); ch = 0.21 + (1i*0.596); xm1 = xm.*ch;
+snr = 1:1:50; ber1 = []; ber2=[];
+for i = snr
+   d = awgn(xm1, i);
+   dem  =pskdemod(d,2);
+   [a,b ] = symerr(dem,xn);
+   ber1 = [ber1 b];
+end
+semilogy(snr,ber1,'*-k','linewidth',1); hold on; grid on;
+for i = snr
+   d = awgn(xm1,i);
+   d1 = d*inv(ch);
+   dem = pskdemod(d1,2);
+   [a,b ]= symerr(dem,xn);
+   ber2 = [ber2 b];
+end
+semilogy(snr,ber2,'*--c','LineWidth',1); title("BER vs SNR for ZFE");
+legend("without ZFE", "with ZFE");
